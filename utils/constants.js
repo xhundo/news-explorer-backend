@@ -4,6 +4,7 @@ const serverFailed = 500;
 const notFound = 404;
 const createSuccess = 201;
 const conflictError = 409;
+const authError = 401;
 
 module.exports = {
   successReq,
@@ -12,4 +13,5 @@ module.exports = {
   notFound,
   createSuccess,
   conflictError,
+  authError,
 };
