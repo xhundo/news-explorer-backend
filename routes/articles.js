@@ -11,6 +11,7 @@ const { auth } = require("../middlewares/auth");
 router.get("/", getArticles);
 router.post(
     "/",
+    auth,
     celebrate({
         body: Joi.object().keys({
             keyword: Joi.string().required(),
@@ -25,6 +26,7 @@ router.post(
 );
 router.delete(
     "/:articleId",
+    auth,
     celebrate({
         params: Joi.object().keys({
             articleId: Joi.string().hex().length(24),

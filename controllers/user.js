@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const ConflictError = require("../errors/conflict-error");
+const NotFoundError = require("../errors/not-found-error");
 const ValidationError = require("../errors/validation-error");
 const User = require("../models/user");
 const {
@@ -18,20 +19,15 @@ module.exports.getCurrentUser = (req, res, next) => {
         .then((data) => {
             res.status(successReq).send({ data });
         })
-        .catch((e) => next(e));
-    // if (e.name === "NotFoundError") {
-    //     res.status(notFound).send({
-    //         message: "Requested user not found",
-    //     });
-    // } else if (e.name === "ValidationError") {
-    //     res.status(badReq).send({
-    //         message: "Invalid user ID",
-    //     });
-    // } else {
-    //     res.status(serverFailed).send({
-    //         message: "An error has occured on the server",
-    //     });
-    // }
+        .catch((e) => {
+            if (e.name === "NotFoundError") {
+                next(new NotFoundError("Requested user not found"));
+            } else if (e.name === "ValidationError") {
+                next(new ValidationError("Requested user not found"));
+            } else {
+                next(e);
+            }
+        });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -56,24 +52,24 @@ module.exports.createUser = (req, res, next) => {
                 }
             });
     });
+};
 
-    module.exports.login = (req, res, next) => {
-        const { email, password } = req.body;
-        const jwtSecret = "dev-secret";
+module.exports.login = (req, res, next) => {
+    const { email, password } = req.body;
+    const jwtSecret = "dev-secret";
 
-        return User.findUserByCredentials(email, password)
-            .then((user) => {
-                const token = jwt.sign({ _id: user._id }, jwtSecret, {
-                    expiresIn: "7d",
-                });
-                res.send({ token });
-            })
-            .catch((e) => {
-                if (e) {
-                    next(new ValidationError(e.message));
-                } else {
-                    next(e);
-                }
+    return User.findUserByCredentials(email, password)
+        .then((user) => {
+            const token = jwt.sign({ _id: user._id }, jwtSecret, {
+                expiresIn: "7d",
             });
-    };
+            res.send({ token });
+        })
+        .catch((e) => {
+            if (e) {
+                next(new ValidationError(e.message));
+            } else {
+                next(e);
+            }
+        });
 };

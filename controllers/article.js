@@ -1,13 +1,8 @@
 const { default: mongoose } = require("mongoose");
+const NotFoundError = require("../errors/not-found-error");
+const ValidationError = require("../errors/validation-error");
 const Article = require("../models/article");
-const {
-    createSuccess,
-    badReq,
-    serverFailed,
-    successReq,
-    notFound,
-    conflictError,
-} = require("../utils/constants");
+const { createSuccess, successReq } = require("../utils/constants");
 
 module.exports.createArticle = (req, res, next) => {
     const { keyword, title, text, source, link, image } = req.body;
@@ -23,17 +18,18 @@ module.exports.createArticle = (req, res, next) => {
         .then((article) => {
             res.status(createSuccess).send([{ data: article }]);
         })
-        .catch((e) => next(e));
-    // console.log(e);
-    // if (e.name === "ValidationError") {
-    //     res.status(badReq).send({
-    //         message: `Article validation failed, fields required!`,
-    //     });
-    // } else {
-    //     res.status(serverFailed).send({
-    //         message: "An error has occured on the server",
-    //     });
-    // }
+        .catch((e) => {
+            console.log(e);
+            if (e.name === "ValidationError") {
+                next(
+                    new ValidationError(
+                        "Article validation failed, fields required!"
+                    )
+                );
+            } else {
+                next(e);
+            }
+        });
 };
 
 module.exports.getArticles = (req, res, next) => {
@@ -41,17 +37,13 @@ module.exports.getArticles = (req, res, next) => {
         .then((data) => {
             res.status(successReq).send([{ articles: data }]);
         })
-        .catch((e) => next(e));
-    //     if (e.name === "NotFoundError") {
-    //         res.status(notFound).send({
-    //             message: "Requested resource not found",
-    //         });
-    //     } else {
-    //         res.status(serverFailed).send({
-    //             message: "An error has occured on the server",
-    //         });
-    //     }
-    // });
+        .catch((e) => {
+            if (e.name === "NotFoundError") {
+                next(new NotFoundError("Requested resource not found"));
+            } else {
+                next(e);
+            }
+        });
 };
 
 module.exports.deleteArticle = (req, res, next) => {
@@ -64,18 +56,14 @@ module.exports.deleteArticle = (req, res, next) => {
         .then((data) => {
             res.status(successReq).send([{ articles: data }]);
         })
-        .catch((e) => next(e));
-    //     console.log(e);
-    //     if (e.name === "ValidationError") {
-    //         res.status(badReq).send({ message: "Invalid ID" });
-    //     } else if (e.name === "DocumentNotFoundError") {
-    //         res.status(notFound).send({
-    //             message: "Requested Article not found",
-    //         });
-    //     } else {
-    //         res.status(serverFailed).send({
-    //             message: "An error has occured on the server",
-    //         });
-    //     }
-    // });
+        .catch((e) => {
+            console.log(e);
+            if (e.name === "ValidationError") {
+                next(new ValidationError("Invalid ID"));
+            } else if (e.name === "DocumentNotFoundError") {
+                next(new NotFoundError("Article not found"));
+            } else {
+                next(e);
+            }
+        });
 };
