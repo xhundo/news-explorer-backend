@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcrypt');
-const ValidationError = require('../errors/validation-error');
 
 const userSchema = new mongoose.Schema({
   email: {

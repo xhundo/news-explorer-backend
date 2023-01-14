@@ -2,18 +2,23 @@ const express = require("express");
 const mongoose = require("mongoose");
 const { celebrate, Joi } = require("celebrate");
 const { errors } = require("celebrate");
+const cors = require("cors");
+const rateLimit = require("express-rate-limit");
 const { login, createUser } = require("./controllers/user");
 const router = require("./routes");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
-const { auth } = require("./middlewares/auth");
-const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 
-const { PORT = 3001 } = process.env;
+const { PORT = 3002 } = process.env;
 
 mongoose.set("strictQuery", true);
 
 mongoose.connect("mongodb://localhost:27017/newsexplorer_db");
+
+const app = express();
+
+app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -22,23 +27,16 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 
-const app = express();
+app.options("*", cors());
 
 app.use(requestLogger);
-
-app.use(express.json());
-
-app.use(express.urlencoded({ extended: true }));
 
 app.use(cors());
 
 app.use(limiter);
 
-app.use("/", router);
-
 app.post(
     "/signin",
-    auth,
     celebrate({
         body: Joi.object().keys({
             email: Joi.string().required(),
@@ -47,9 +45,9 @@ app.post(
     }),
     login
 );
+
 app.post(
     "/signup",
-    auth,
     celebrate({
         body: Joi.object().keys({
             email: Joi.string().required(),
@@ -60,11 +58,13 @@ app.post(
     createUser
 );
 
-app.use(errorLogger);
+app.use("/", router);
 
 app.use(errors());
 
-app.use((e, res) => {
+app.use(errorLogger);
+
+app.use((e, req, res, next) => {
     const { statusCode = 500, message } = e;
 
     res.status(statusCode).send({
