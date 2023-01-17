@@ -5,6 +5,7 @@ const { createSuccess, successReq } = require("../utils/constants");
 
 module.exports.createArticle = (req, res, next) => {
     const { keyword, title, date, text, source, link, image } = req.body;
+    const owner = req.user._id;
 
     Article.create({
         keyword,
@@ -14,6 +15,7 @@ module.exports.createArticle = (req, res, next) => {
         date,
         link,
         image,
+        owner,
     })
         .then((articles) => {
             res.status(createSuccess).send([{ data: articles }]);
@@ -46,9 +48,6 @@ module.exports.getArticles = (req, res, next) => {
 };
 
 module.exports.deleteArticle = (req, res, next) => {
-    // if (req.user._id !== mongoose.Types.ObjectId) {
-    //     throw new Error("Invalid user ID");
-    // }
     const id = req.params.articleId;
     Article.findByIdAndRemove(id)
         .orFail()
