@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 200,
+    max: 20000000000000000000,
     standardHeaders: true,
     legacyHeaders: false,
 });
