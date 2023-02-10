@@ -12,7 +12,7 @@ const { PORT = 3002 } = process.env;
 
 mongoose.set("strictQuery", true);
 
-mongoose.connect("mongodb://localhost:27017/newsexplorer_db");
+mongoose.connect("mongodb://127.0.0.1:27017/newsexplorer_db");
 
 const app = express();
 
@@ -22,7 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 200000000000000000000,
+    max: 1000,
     standardHeaders: true,
     legacyHeaders: false,
 });
