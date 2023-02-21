@@ -1,20 +1,17 @@
-const router = require("express").Router();
-const { login, createUser } = require("../controllers/user");
-const NotFoundError = require("../errors/not-found-error");
-const articlesRouter = require("./articles");
-const {
-    loginValidator,
-    registrationValidator,
-} = require("../utils/validation");
-const userRouter = require("./user");
+const router = require('express').Router();
+const { login, createUser } = require('../controllers/user');
+const NotFoundError = require('../errors/not-found-error');
+const { loginValidator, registerValidation } = require('../utils/validation');
+const articlesRouter = require('./articles');
 
-router.use("/articles", articlesRouter);
-router.use("/users", userRouter);
-router.post("/signin", loginValidator, login);
-router.post("/signup", registrationValidator, createUser);
+const userRouter = require('./user');
 
+router.use('/articles', articlesRouter);
+router.use('/users', userRouter);
+router.post('/signin', loginValidator, login);
+router.post('/signup', registerValidation, createUser);
 router.use((req, res, next) => {
-    next(new NotFoundError("This route does not exist"));
+  next(new NotFoundError('The requested route does not exist'));
 });
 
 module.exports = router;
