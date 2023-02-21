@@ -1,5 +1,7 @@
 const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
 
+dotenv.config();
 const { NODE_ENV, JWT_SECRET } = process.env;
 const jwt = require('jsonwebtoken');
 const AuthError = require('../errors/auth-error');
@@ -7,7 +9,9 @@ const ConflictError = require('../errors/conflict-error');
 const NotFoundError = require('../errors/not-found-error');
 const ValidationError = require('../errors/validation-error');
 const User = require('../models/user');
-const { successReq, createSuccess, jwtSecret } = require('../utils/constants');
+const {
+  successReq, createSuccess, jwtSecret, conflictErrorMsg, userValidationErrorMsg, notFoundUser,
+} = require('../utils/constants');
 
 module.exports.getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
@@ -17,7 +21,7 @@ module.exports.getCurrentUser = (req, res, next) => {
     })
     .catch((e) => {
       if (e.name === 'DocumentNotFoundError') {
-        next(new NotFoundError('Requested user not found'));
+        next(new NotFoundError(notFoundUser));
       } else {
         next(e);
       }
@@ -34,14 +38,13 @@ module.exports.createUser = (req, res, next) => {
           id: user._id,
           name: user.name,
           email: user.email,
-
         });
       })
       .catch((e) => {
         if (e.name === 'ValidationError') {
-          next(new ValidationError('User validation failed'));
+          next(new ValidationError(userValidationErrorMsg));
         } else if (e.code === 11000) {
-          next(new ConflictError('User already exist'));
+          next(new ConflictError(conflictErrorMsg));
         } else {
           next(e);
         }
@@ -54,9 +57,13 @@ module.exports.login = (req, res, next) => {
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, NODE_ENV !== 'production' ? jwtSecret : JWT_SECRET, {
-        expiresIn: '7d',
-      });
+      const token = jwt.sign(
+        { _id: user._id },
+        NODE_ENV !== 'production' ? jwtSecret : JWT_SECRET,
+        {
+          expiresIn: '7d',
+        },
+      );
       res.send({ token });
     })
     .catch((e) => {
