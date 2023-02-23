@@ -1,4 +1,5 @@
 const { celebrate, Joi } = require('celebrate');
+const { validateURL } = require('./validator');
 
 const loginValidator = celebrate({
   body: Joi.object().keys({
@@ -22,8 +23,8 @@ const createArticleValidator = celebrate({
     text: Joi.string().required(),
     date: Joi.string().required(),
     source: Joi.string().required(),
-    link: Joi.string().required().uri(),
-    image: Joi.string().required().uri(),
+    link: Joi.string().required().custom(validateURL),
+    image: Joi.string().required().custom(validateURL),
   }),
 });
 
