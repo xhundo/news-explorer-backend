@@ -11,7 +11,7 @@ const router = require("./routes");
 const { requestLogger, errorLogger } = require("./middlewares/logger");
 const { centralErrorHandler } = require("./utils/centralized-handling");
 
-const { PORT = 3002, DATABASE_URL } = process.env;
+const { PORT = 3001, DATABASE_URL } = process.env;
 
 mongoose.set("strictQuery", true);
 
